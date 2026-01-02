@@ -74,6 +74,9 @@ public final class TaskList implements Runnable {
             case "today":
                 today();
                 break;
+            case "view-by-deadline":
+                viewByDeadline();
+                break;
             case "help":
                 help();
                 break;
@@ -193,6 +196,55 @@ public final class TaskList implements Runnable {
         out.println(line);
     }
 
+    private void viewByDeadline() {
+        Map<LocalDate, List<Task>> groupedByDeadline = new TreeMap<>();
+        List<Task> noDeadline = new ArrayList<>();
+
+        groupTasksByDeadline(noDeadline, groupedByDeadline);
+
+        sortTasksById(groupedByDeadline, noDeadline);
+
+        printByDeadline(groupedByDeadline, noDeadline);
+    }
+
+    private void groupTasksByDeadline(List<Task> noDeadline, Map<LocalDate, List<Task>> groupedByDeadline) {
+        for (List<Task> projectTasks : tasks.values()) {
+            for (Task task : projectTasks) {
+                Optional<LocalDate> deadlineOptional = task.getDeadline();
+                if (deadlineOptional.isEmpty()) {
+                    noDeadline.add(task);
+                    continue;
+                }
+
+                LocalDate date = deadlineOptional.get();
+                groupedByDeadline.computeIfAbsent(date, key -> new ArrayList<>()).add(task);
+            }
+        }
+    }
+
+    private void printByDeadline(Map<LocalDate, List<Task>> groupedByDeadline, List<Task> noDeadline) {
+        for (Map.Entry<LocalDate, List<Task>> entry : groupedByDeadline.entrySet()) {
+            out.println(DEADLINE_FORMAT.format(entry.getKey()) + ":");
+            for (Task task : entry.getValue()) {
+                out.printf("    %d: %s%n", task.getId(), task.getDescription());
+            }
+        }
+
+        if (!noDeadline.isEmpty()) {
+            out.println("No deadline:");
+            for (Task task : noDeadline) {
+                out.printf("    %d: %s%n", task.getId(), task.getDescription());
+            }
+        }
+    }
+
+    private static void sortTasksById(Map<LocalDate, List<Task>> groupedByDeadline, List<Task> noDeadline) {
+        for (List<Task> list : groupedByDeadline.values()) {
+            list.sort(Comparator.comparingLong(Task::getId));
+        }
+        noDeadline.sort(Comparator.comparingLong(Task::getId));
+    }
+
     private void add(String commandLine) {
         String[] subcommandRest = commandLine.split(" ", 2);
         String subcommand = subcommandRest[0];
@@ -249,6 +301,7 @@ public final class TaskList implements Runnable {
         out.println("  uncheck <task ID>");
         out.println("  deadline <ID> <dd-mm-yyyy>");
         out.println("  today");
+        out.println("  view-by-deadline");
         out.println();
     }
 
