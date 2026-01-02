@@ -4,13 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 
 public final class TaskList implements Runnable {
     private static final String QUIT = "quit";
+    private static final DateTimeFormatter DEADLINE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
     private final Map<String, List<Task>> tasks = new LinkedHashMap<>();
     private final BufferedReader in;
@@ -63,6 +64,13 @@ public final class TaskList implements Runnable {
             case "uncheck":
                 uncheck(commandRest[1]);
                 break;
+            case "deadline":
+                if (commandRest.length < 2) {
+                    out.println("Incorrect command line input, should be: deadline <task ID> <dd-mm-yyyy>");
+                    break;
+                }
+                addDeadline(commandRest[1]);
+                break;
             case "help":
                 help();
                 break;
@@ -72,11 +80,81 @@ public final class TaskList implements Runnable {
         }
     }
 
+    private void addDeadline(String commandLine) {
+        String[] idAndDate = commandLine.split(" ", 2);
+
+        if (!hasExactlyTwoArguments(idAndDate,
+                "Incorrect command line input, should be: deadline <task ID> <dd-mm-yyyy>.")) {
+            return;
+        }
+
+        Long id = parseId(idAndDate);
+        if (id == null) return;
+
+        Optional<Task> taskOptional = findTaskById(id);
+        if (taskOptional.isEmpty()) {
+            out.printf("Could not find a task with an ID of %d.", id);
+            out.println();
+            return;
+        }
+
+        LocalDate date = parseDate(idAndDate);
+        if (date == null) return;
+
+        Task task = taskOptional.get();
+        task.setDeadline(date);
+    }
+
+    private LocalDate parseDate(String[] idAndDate) {
+        LocalDate date;
+        try {
+            date = LocalDate.parse(idAndDate[1], DEADLINE_FORMAT);
+        } catch (DateTimeParseException e) {
+            out.printf("Invalid date format: %s, use format dd-mm-yyyy.", idAndDate[1]);
+            out.println();
+            return null;
+        }
+        return date;
+    }
+
+    private Long parseId(String[] idAndDate) {
+        Long id;
+        try {
+            id = Long.parseLong(idAndDate[0]);
+        } catch (NumberFormatException e) {
+            out.printf("Invalid id format: %s.", idAndDate[0]);
+            out.println();
+            return null;
+        }
+        return id;
+    }
+
+    private boolean hasExactlyTwoArguments(String[] idAndDate, String message) {
+        if (idAndDate.length != 2) {
+            out.println(message);
+            return false;
+        }
+        return true;
+    }
+
     private void show() {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             out.println(project.getKey());
             for (Task task : project.getValue()) {
-                out.printf("    [%c] %d: %s%n", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                String line = String.format(
+                        "    [%c] %d: %s",
+                        task.isDone() ? 'x' : ' ',
+                        task.getId(),
+                        task.getDescription()
+                );
+
+                if (task.getDeadline().isPresent()) {
+                    line += String.format(
+                            " (deadline: %s)",
+                            DEADLINE_FORMAT.format(task.getDeadline().get())
+                    );
+                }
+                out.println(line);
             }
             out.println();
         }
@@ -136,6 +214,7 @@ public final class TaskList implements Runnable {
         out.println("  add task <project name> <task description>");
         out.println("  check <task ID>");
         out.println("  uncheck <task ID>");
+        out.println("  deadline <ID> <dd-mm-yyyy>");
         out.println();
     }
 
@@ -146,5 +225,16 @@ public final class TaskList implements Runnable {
 
     private long nextId() {
         return ++lastId;
+    }
+
+    private Optional<Task> findTaskById(Long id) {
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            for (Task task : project.getValue()) {
+                if (task.getId() == id) {
+                    return Optional.of(task);
+                }
+            }
+        }
+        return Optional.empty();
     }
 }
