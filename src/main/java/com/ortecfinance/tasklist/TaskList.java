@@ -71,6 +71,9 @@ public final class TaskList implements Runnable {
                 }
                 addDeadline(commandRest[1]);
                 break;
+            case "today":
+                today();
+                break;
             case "help":
                 help();
                 break;
@@ -141,23 +144,53 @@ public final class TaskList implements Runnable {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             out.println(project.getKey());
             for (Task task : project.getValue()) {
-                String line = String.format(
-                        "    [%c] %d: %s",
-                        task.isDone() ? 'x' : ' ',
-                        task.getId(),
-                        task.getDescription()
-                );
-
-                if (task.getDeadline().isPresent()) {
-                    line += String.format(
-                            " (deadline: %s)",
-                            DEADLINE_FORMAT.format(task.getDeadline().get())
-                    );
-                }
-                out.println(line);
+                printTask(task);
             }
             out.println();
         }
+    }
+
+    private void today() {
+        LocalDate today = LocalDate.now();
+
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            List<Task> dueTodayTasks = new ArrayList<>();
+
+            for (Task task : project.getValue()) {
+                if (task.getDeadline().isPresent() && task.getDeadline().get().equals(today)) {
+                    dueTodayTasks.add(task);
+                }
+            }
+
+            if (dueTodayTasks.isEmpty()) {
+                continue;
+            }
+
+            out.println(project.getKey());
+            for (Task task : dueTodayTasks) {
+                printTask(task);
+            }
+
+            out.println();
+        }
+    }
+
+    private void printTask(Task task) {
+        String line = String.format(
+                "    [%c] %d: %s",
+                task.isDone() ? 'x' : ' ',
+                task.getId(),
+                task.getDescription()
+        );
+
+        if (task.getDeadline().isPresent()) {
+            line += String.format(
+                    " (deadline: %s)",
+                    DEADLINE_FORMAT.format(task.getDeadline().get())
+            );
+        }
+
+        out.println(line);
     }
 
     private void add(String commandLine) {
@@ -215,6 +248,7 @@ public final class TaskList implements Runnable {
         out.println("  check <task ID>");
         out.println("  uncheck <task ID>");
         out.println("  deadline <ID> <dd-mm-yyyy>");
+        out.println("  today");
         out.println();
     }
 
