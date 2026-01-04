@@ -197,52 +197,82 @@ public final class TaskList implements Runnable {
     }
 
     private void viewByDeadline() {
-        Map<LocalDate, List<Task>> groupedByDeadline = new TreeMap<>();
-        List<Task> noDeadline = new ArrayList<>();
+        Map<LocalDate, Map<String, List<Task>>> groupedByDeadline = new TreeMap<>();
+        Map<String, List<Task>> noDeadline = new LinkedHashMap<>();
 
-        groupTasksByDeadline(noDeadline, groupedByDeadline);
+        groupTasksByDeadlineAndProject(noDeadline, groupedByDeadline);
 
         sortTasksById(groupedByDeadline, noDeadline);
 
         printByDeadline(groupedByDeadline, noDeadline);
     }
 
-    private void groupTasksByDeadline(List<Task> noDeadline, Map<LocalDate, List<Task>> groupedByDeadline) {
-        for (List<Task> projectTasks : tasks.values()) {
-            for (Task task : projectTasks) {
+    private void groupTasksByDeadlineAndProject(
+            Map<String, List<Task>> noDeadline,
+            Map<LocalDate, Map<String, List<Task>>> groupedByDeadline
+    ) {
+        for (Map.Entry<String, List<Task>> projectEntry : tasks.entrySet()) {
+            String projectName = projectEntry.getKey();
+
+            for (Task task : projectEntry.getValue()) {
                 Optional<LocalDate> deadlineOptional = task.getDeadline();
+
                 if (deadlineOptional.isEmpty()) {
-                    noDeadline.add(task);
+                    noDeadline
+                            .computeIfAbsent(projectName, key -> new ArrayList<>())
+                            .add(task);
                     continue;
                 }
 
                 LocalDate date = deadlineOptional.get();
-                groupedByDeadline.computeIfAbsent(date, key -> new ArrayList<>()).add(task);
+
+                groupedByDeadline
+                        .computeIfAbsent(date, key -> new LinkedHashMap<>())
+                        .computeIfAbsent(projectName, key -> new ArrayList<>())
+                        .add(task);
             }
         }
     }
 
-    private void printByDeadline(Map<LocalDate, List<Task>> groupedByDeadline, List<Task> noDeadline) {
-        for (Map.Entry<LocalDate, List<Task>> entry : groupedByDeadline.entrySet()) {
+    private void printByDeadline(
+            Map<LocalDate, Map<String, List<Task>>> groupedByDeadline,
+            Map<String, List<Task>> noDeadline
+    ) {
+        for (Map.Entry<LocalDate, Map<String, List<Task>>> entry : groupedByDeadline.entrySet()) {
             out.println(DEADLINE_FORMAT.format(entry.getKey()) + ":");
-            for (Task task : entry.getValue()) {
-                out.printf("    %d: %s%n", task.getId(), task.getDescription());
+
+            for (Map.Entry<String, List<Task>> projectEntry : entry.getValue().entrySet()) {
+                out.println("    " + projectEntry.getKey() + ":");
+                for (Task task : projectEntry.getValue()) {
+                    out.printf("        %d: %s%n", task.getId(), task.getDescription());
+                }
             }
         }
 
         if (!noDeadline.isEmpty()) {
             out.println("No deadline:");
-            for (Task task : noDeadline) {
-                out.printf("    %d: %s%n", task.getId(), task.getDescription());
+            for (Map.Entry<String, List<Task>> projectEntry : noDeadline.entrySet()) {
+                out.println("    " + projectEntry.getKey() + ":");
+                for (Task task : projectEntry.getValue()) {
+                    out.printf("        %d: %s%n", task.getId(), task.getDescription());
+                }
             }
         }
     }
 
-    private static void sortTasksById(Map<LocalDate, List<Task>> groupedByDeadline, List<Task> noDeadline) {
-        for (List<Task> list : groupedByDeadline.values()) {
+    private void sortTasksById(
+            Map<LocalDate, Map<String, List<Task>>> groupedByDeadline,
+            Map<String, List<Task>> noDeadline
+    ) {
+        for (Map<String, List<Task>> projects : groupedByDeadline.values()) {
+            for (List<Task> list : projects.values()) {
+                list.sort(Comparator.comparingLong(Task::getId));
+            }
+        }
+
+        for (List<Task> list : noDeadline.values()) {
             list.sort(Comparator.comparingLong(Task::getId));
         }
-        noDeadline.sort(Comparator.comparingLong(Task::getId));
     }
 
     private void add(String commandLine) {
