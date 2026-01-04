@@ -14,8 +14,8 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
-@Component
 @Profile("console")
+@Component
 @RequiredArgsConstructor
 public final class TaskList implements CommandLineRunner {
     private static final String QUIT = "quit";
