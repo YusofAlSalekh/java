@@ -19,8 +19,18 @@ public final class ApplicationTestSetup {
     public ApplicationTestSetup() throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(new PipedInputStream(inStream)));
         PrintWriter out = new PrintWriter(new PipedOutputStream(outStream), true);
-        TaskList taskList = new TaskList(in, out);
-        applicationThread = new Thread(taskList);
+
+        TaskRepository repo = new InMemoryTaskRepository();
+        TaskService service = new TaskService(repo);
+
+        TaskList taskList = new TaskList(service, in, out);
+        applicationThread = new Thread(() -> {
+            try {
+                taskList.run(new String[0]);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public void start_the_application() throws IOException {

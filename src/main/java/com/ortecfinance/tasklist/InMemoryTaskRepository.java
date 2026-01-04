@@ -1,7 +1,10 @@
 package com.ortecfinance.tasklist;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.*;
 
+@Repository
 public final class InMemoryTaskRepository implements TaskRepository {
     private final Map<String, List<Task>> tasks = new LinkedHashMap<>();
     private long lastId = 0;

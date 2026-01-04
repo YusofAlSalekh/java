@@ -1,35 +1,32 @@
 package com.ortecfinance.tasklist;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
-public final class TaskList implements Runnable {
+@Component
+@Profile("console")
+@RequiredArgsConstructor
+public final class TaskList implements CommandLineRunner {
     private static final String QUIT = "quit";
     private static final DateTimeFormatter DEADLINE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
-    private final TaskRepository taskRepository = new InMemoryTaskRepository();
+    private final TaskService taskService;
     private final BufferedReader in;
     private final PrintWriter out;
 
-
-    public static void startConsole() {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        PrintWriter out = new PrintWriter(System.out);
-        new TaskList(in, out).run();
-    }
-
-    public TaskList(BufferedReader reader, PrintWriter writer) {
-        this.in = reader;
-        this.out = writer;
-    }
-
-    public void run() {
+    @Override
+    public void run(String... args) {
         out.println("Welcome to TaskList! Type 'help' for available commands.");
         while (true) {
             out.print("> ");
@@ -96,18 +93,14 @@ public final class TaskList implements Runnable {
         Long id = parseId(idAndDate);
         if (id == null) return;
 
-        Optional<Task> taskOptional = findTaskById(id);
-        if (taskOptional.isEmpty()) {
-            out.printf("Could not find a task with an ID of %d.", id);
-            out.println();
-            return;
-        }
-
         LocalDate date = parseDate(idAndDate);
         if (date == null) return;
 
-        Task task = taskOptional.get();
-        task.setDeadline(date);
+        try {
+            taskService.deadline(id, date);
+        } catch (IllegalArgumentException e) {
+            out.println(e.getMessage());
+        }
     }
 
     private LocalDate parseDate(String[] idAndDate) {
@@ -143,9 +136,11 @@ public final class TaskList implements Runnable {
     }
 
     private void show() {
-        for (String project : taskRepository.projects()) {
-            out.println(project);
-            for (Task task : taskRepository.tasksInProject(project)) {
+        Map<String, List<Task>> data = taskService.show();
+
+        for (Map.Entry<String, List<Task>> entry : data.entrySet()) {
+            out.println(entry.getKey());
+            for (Task task : entry.getValue()) {
                 printTask(task);
             }
             out.println();
@@ -153,23 +148,12 @@ public final class TaskList implements Runnable {
     }
 
     private void today() {
-        LocalDate today = LocalDate.now();
+        Map<String, List<Task>> data = taskService.today(LocalDate.now());
 
-        for (String project : taskRepository.projects()) {
-            List<Task> dueTodayTasks = new ArrayList<>();
+        for (Map.Entry<String, List<Task>> entry : data.entrySet()) {
+            out.println(entry.getKey());
 
-            for (Task task : taskRepository.tasksInProject(project)) {
-                if (task.getDeadline().isPresent() && task.getDeadline().get().equals(today)) {
-                    dueTodayTasks.add(task);
-                }
-            }
-
-            if (dueTodayTasks.isEmpty()) {
-                continue;
-            }
-
-            out.println(project);
-            for (Task task : dueTodayTasks) {
+            for (Task task : entry.getValue()) {
                 printTask(task);
             }
 
@@ -196,39 +180,8 @@ public final class TaskList implements Runnable {
     }
 
     private void viewByDeadline() {
-        Map<LocalDate, Map<String, List<Task>>> groupedByDeadline = new TreeMap<>();
-        Map<String, List<Task>> noDeadline = new LinkedHashMap<>();
-
-        groupTasksByDeadlineAndProject(noDeadline, groupedByDeadline);
-
-        sortTasksById(groupedByDeadline, noDeadline);
-
-        printByDeadline(groupedByDeadline, noDeadline);
-    }
-
-    private void groupTasksByDeadlineAndProject(
-            Map<String, List<Task>> noDeadline,
-            Map<LocalDate, Map<String, List<Task>>> groupedByDeadline
-    ) {
-        for (String projectName : taskRepository.projects()) {
-            for (Task task : taskRepository.tasksInProject(projectName)) {
-                Optional<LocalDate> deadlineOptional = task.getDeadline();
-
-                if (deadlineOptional.isEmpty()) {
-                    noDeadline
-                            .computeIfAbsent(projectName, key -> new ArrayList<>())
-                            .add(task);
-                    continue;
-                }
-
-                LocalDate date = deadlineOptional.get();
-
-                groupedByDeadline
-                        .computeIfAbsent(date, key -> new LinkedHashMap<>())
-                        .computeIfAbsent(projectName, key -> new ArrayList<>())
-                        .add(task);
-            }
-        }
+        ViewByDeadlineResult result = taskService.viewByDeadline();
+        printByDeadline(result.groupedByDeadline(), result.noDeadline());
     }
 
     private void printByDeadline(
@@ -257,21 +210,6 @@ public final class TaskList implements Runnable {
         }
     }
 
-    private void sortTasksById(
-            Map<LocalDate, Map<String, List<Task>>> groupedByDeadline,
-            Map<String, List<Task>> noDeadline
-    ) {
-        for (Map<String, List<Task>> projects : groupedByDeadline.values()) {
-            for (List<Task> list : projects.values()) {
-                list.sort(Comparator.comparingLong(Task::getId));
-            }
-        }
-
-        for (List<Task> list : noDeadline.values()) {
-            list.sort(Comparator.comparingLong(Task::getId));
-        }
-    }
-
     private void add(String commandLine) {
         String[] subcommandRest = commandLine.split(" ", 2);
         String subcommand = subcommandRest[0];
@@ -284,15 +222,18 @@ public final class TaskList implements Runnable {
     }
 
     private void addProject(String name) {
-        taskRepository.addProject(name);
+        try {
+            taskService.addProject(name);
+        } catch (IllegalArgumentException e) {
+            out.println(e.getMessage());
+        }
     }
 
     private void addTask(String project, String description) {
         try {
-            taskRepository.addTask(project, description);
+            taskService.addTask(project, description);
         } catch (IllegalArgumentException e) {
-            out.printf("Could not find a project with the name \"%s\".", project);
-            out.println();
+            out.println(e.getMessage());
         }
     }
 
@@ -305,17 +246,23 @@ public final class TaskList implements Runnable {
     }
 
     private void setDone(String idString, boolean done) {
-        int id = Integer.parseInt(idString);
-        for (String project : taskRepository.projects()) {
-            for (Task task : taskRepository.tasksInProject(project)) {
-                if (task.getId() == id) {
-                    task.setDone(done);
-                    return;
-                }
-            }
+        Long id;
+        try {
+            id = Long.parseLong(idString);
+        } catch (NumberFormatException e) {
+            out.printf("Invalid id format: %s.%n", idString);
+            return;
         }
-        out.printf("Could not find a task with an ID of %d.", id);
-        out.println();
+
+        try {
+            if (done) {
+                taskService.check(id);
+            } else {
+                taskService.uncheck(id);
+            }
+        } catch (IllegalArgumentException e) {
+            out.println(e.getMessage());
+        }
     }
 
     private void help() {
@@ -334,9 +281,5 @@ public final class TaskList implements Runnable {
     private void error(String command) {
         out.printf("I don't know what the command \"%s\" is.", command);
         out.println();
-    }
-
-    private Optional<Task> findTaskById(Long id) {
-        return taskRepository.findTaskById(id);
     }
 }
