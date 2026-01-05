@@ -1,5 +1,7 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.console;
 
+import com.ortecfinance.tasklist.model.Task;
+import com.ortecfinance.tasklist.service.ViewByDeadlineResult;
 import com.ortecfinance.tasklist.exceptions.TaskNotFoundException;
 import com.ortecfinance.tasklist.service.TaskService;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,6 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.service;
+
+import com.ortecfinance.tasklist.model.Task;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.ortecfinance.tasklist.api.controller;
 
-import com.ortecfinance.tasklist.Task;
+import com.ortecfinance.tasklist.model.Task;
 import com.ortecfinance.tasklist.api.controller.json.request.ProjectCreationRequest;
 import com.ortecfinance.tasklist.api.controller.json.response.ProjectResponse;
 import com.ortecfinance.tasklist.api.controller.json.response.TaskResponse;

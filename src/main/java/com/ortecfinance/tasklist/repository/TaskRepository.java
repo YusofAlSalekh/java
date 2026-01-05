@@ -1,4 +1,6 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.repository;
+
+import com.ortecfinance.tasklist.model.Task;
 
 import java.util.Collection;
 import java.util.List;

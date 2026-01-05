@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.console;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

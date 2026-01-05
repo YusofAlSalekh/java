@@ -1,5 +1,7 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.console;
 
+import com.ortecfinance.tasklist.repository.InMemoryTaskRepository;
+import com.ortecfinance.tasklist.repository.TaskRepository;
 import com.ortecfinance.tasklist.service.TaskService;
 
 import java.io.*;

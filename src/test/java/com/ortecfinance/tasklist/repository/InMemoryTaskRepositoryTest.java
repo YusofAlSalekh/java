@@ -1,7 +1,6 @@
 package com.ortecfinance.tasklist.repository;
 
-import com.ortecfinance.tasklist.InMemoryTaskRepository;
-import com.ortecfinance.tasklist.Task;
+import com.ortecfinance.tasklist.model.Task;
 import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

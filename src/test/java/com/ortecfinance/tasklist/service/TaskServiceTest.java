@@ -1,8 +1,7 @@
 package com.ortecfinance.tasklist.service;
 
-import com.ortecfinance.tasklist.Task;
-import com.ortecfinance.tasklist.TaskRepository;
-import com.ortecfinance.tasklist.ViewByDeadlineResult;
+import com.ortecfinance.tasklist.model.Task;
+import com.ortecfinance.tasklist.repository.TaskRepository;
 import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
 import com.ortecfinance.tasklist.exceptions.TaskNotFoundException;
 import org.junit.jupiter.api.Test;

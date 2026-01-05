@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.console;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

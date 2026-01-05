@@ -1,5 +1,6 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.repository;
 
+import com.ortecfinance.tasklist.model.Task;
 import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
 import org.springframework.stereotype.Repository;
 
