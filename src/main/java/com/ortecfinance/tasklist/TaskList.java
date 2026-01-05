@@ -1,5 +1,6 @@
 package com.ortecfinance.tasklist;
 
+import com.ortecfinance.tasklist.exceptions.TaskNotFoundException;
 import com.ortecfinance.tasklist.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -99,7 +100,7 @@ public final class TaskList implements CommandLineRunner {
 
         try {
             taskService.addDeadline(id, date);
-        } catch (IllegalArgumentException e) {
+        } catch (TaskNotFoundException e) {
             out.println(e.getMessage());
         }
     }
