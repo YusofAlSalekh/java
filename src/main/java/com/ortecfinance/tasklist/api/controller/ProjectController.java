@@ -1,10 +1,10 @@
 package com.ortecfinance.tasklist.api.controller;
 
 import com.ortecfinance.tasklist.Task;
-import com.ortecfinance.tasklist.TaskService;
 import com.ortecfinance.tasklist.api.controller.json.request.ProjectCreationRequest;
 import com.ortecfinance.tasklist.api.controller.json.response.ProjectResponse;
 import com.ortecfinance.tasklist.api.controller.json.response.TaskResponse;
+import com.ortecfinance.tasklist.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;

@@ -1,5 +1,10 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.service;
 
+import com.ortecfinance.tasklist.Task;
+import com.ortecfinance.tasklist.TaskRepository;
+import com.ortecfinance.tasklist.ViewByDeadlineResult;
+import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
+import com.ortecfinance.tasklist.exceptions.TaskNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +16,9 @@ import java.util.*;
 public class TaskService {
     private final TaskRepository taskRepository;
 
-    public void deadline(long id, LocalDate date) {
+    public void addDeadline(long id, LocalDate date) {
         Task task = taskRepository.findTaskById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new TaskNotFoundException(
                         "Could not find a task with an ID of " + id + "."
                 ));
         task.setDeadline(date);
@@ -107,7 +112,7 @@ public class TaskService {
 
     public Task addTask(String project, String description) {
         if (!taskRepository.projectExists(project)) {
-            throw new IllegalArgumentException(
+            throw new ProjectNotFoundException(
                     "Could not find a project with the name \"" + project + "\"."
             );
         }
@@ -124,10 +129,9 @@ public class TaskService {
 
     private void setDone(long id, boolean done) {
         Task task = taskRepository.findTaskById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new TaskNotFoundException(
                         "Could not find a task with an ID of " + id + "."
                 ));
         task.setDone(done);
     }
-
 }
