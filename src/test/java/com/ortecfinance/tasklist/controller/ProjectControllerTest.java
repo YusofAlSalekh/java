@@ -148,6 +148,9 @@ class ProjectControllerTest {
 
     @Test
     void addDeadline_success_returns204_andCallsService() throws Exception {
+        when(deadlineParser.parse("15-01-2025"))
+                .thenReturn(LocalDate.of(2025, 1, 15));
+
         mockMvc.perform(put("/projects/{projectName}/tasks/{taskId}", "secrets", 5)
                         .queryParam("deadline", "15-01-2025"))
                 .andExpect(status().isNoContent());
