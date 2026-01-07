@@ -1,9 +1,12 @@
 package com.ortecfinance.tasklist.api.controller;
 
-import com.ortecfinance.tasklist.model.Task;
 import com.ortecfinance.tasklist.api.controller.json.request.ProjectCreationRequest;
+import com.ortecfinance.tasklist.api.controller.json.request.TaskCreationRequest;
 import com.ortecfinance.tasklist.api.controller.json.response.ProjectResponse;
 import com.ortecfinance.tasklist.api.controller.json.response.TaskResponse;
+import com.ortecfinance.tasklist.api.controller.json.response.ViewByDeadlineResponse;
+import com.ortecfinance.tasklist.api.mapper.ViewByDeadlineMapper;
+import com.ortecfinance.tasklist.model.Task;
 import com.ortecfinance.tasklist.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ import java.util.Map;
 @RequestMapping("/projects")
 public class ProjectController {
     private final TaskService taskService;
+    private final ViewByDeadlineMapper mapper;
+    private final DeadlineParser deadlineParser;
 
     @PostMapping
     public ResponseEntity<Void> createProject(@RequestBody @Valid ProjectCreationRequest request) {
@@ -49,5 +54,37 @@ public class ProjectController {
         }
 
         return response;
+    }
+
+    @PostMapping("/{projectName}/tasks")
+    public ResponseEntity<TaskResponse> createTask(
+            @PathVariable String projectName,
+            @RequestBody @Valid TaskCreationRequest request
+    ) {
+        Task task = taskService.addTask(projectName, request.getDescription());
+
+        TaskResponse response = new TaskResponse(
+                task.getId(),
+                task.getDescription(),
+                task.isDone(),
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{projectName}/tasks/{taskId}")
+    public ResponseEntity<Void> addDeadline(
+            @PathVariable String projectName,
+            @PathVariable long taskId,
+            @RequestParam("deadline") String deadline
+    ) {
+        taskService.addDeadline(taskId, deadlineParser.parse(deadline));
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/view_by_deadline")
+    public ViewByDeadlineResponse viewByDeadline() {
+        return mapper.toResponse(taskService.viewByDeadline());
     }
 }
