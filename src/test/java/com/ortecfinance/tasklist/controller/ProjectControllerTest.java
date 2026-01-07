@@ -173,10 +173,10 @@ class ProjectControllerTest {
         when(deadlineParser.parse("2025-01-15"))
                 .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format, use dd-MM-yyyy."));
 
-
         mockMvc.perform(put("/projects/{projectName}/tasks/{taskId}", "secrets", 5)
                         .queryParam("deadline", "2025-01-15"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(status().reason("Invalid date format, use dd-MM-yyyy."));
 
         verifyNoInteractions(taskService, mapper);
     }
