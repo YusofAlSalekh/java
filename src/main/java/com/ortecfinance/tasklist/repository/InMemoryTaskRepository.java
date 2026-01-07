@@ -1,7 +1,6 @@
 package com.ortecfinance.tasklist.repository;
 
 import com.ortecfinance.tasklist.model.Task;
-import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -24,9 +23,7 @@ public final class InMemoryTaskRepository implements TaskRepository {
     @Override
     public Task addTask(String project, String description) {
         List<Task> projectTasks = tasks.get(project);
-        if (projectTasks == null) {
-            throw new ProjectNotFoundException("Could not find a project with the name: " + project);
-        }
+
         Task task = new Task(nextId(), description, false);
         projectTasks.add(task);
         return task;

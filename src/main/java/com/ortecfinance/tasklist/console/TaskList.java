@@ -1,9 +1,10 @@
 package com.ortecfinance.tasklist.console;
 
-import com.ortecfinance.tasklist.model.Task;
-import com.ortecfinance.tasklist.service.ViewByDeadlineResult;
+import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
 import com.ortecfinance.tasklist.exceptions.TaskNotFoundException;
+import com.ortecfinance.tasklist.model.Task;
 import com.ortecfinance.tasklist.service.TaskService;
+import com.ortecfinance.tasklist.service.ViewByDeadlineResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -226,17 +227,13 @@ public final class TaskList implements CommandLineRunner {
     }
 
     private void addProject(String name) {
-        try {
-            taskService.addProject(name);
-        } catch (IllegalArgumentException e) {
-            out.println(e.getMessage());
-        }
+        taskService.addProject(name);
     }
 
     private void addTask(String project, String description) {
         try {
             taskService.addTask(project, description);
-        } catch (IllegalArgumentException e) {
+        } catch (ProjectNotFoundException e) {
             out.println(e.getMessage());
         }
     }
@@ -264,7 +261,7 @@ public final class TaskList implements CommandLineRunner {
             } else {
                 taskService.uncheck(id);
             }
-        } catch (IllegalArgumentException e) {
+        } catch (TaskNotFoundException e) {
             out.println(e.getMessage());
         }
     }
