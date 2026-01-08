@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Start WebApp" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="web" />
     <module name="TaskList" />
-    <option name="PROGRAM_PARAMETERS" value="web" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.ortecfinance.tasklist.TaskListApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
