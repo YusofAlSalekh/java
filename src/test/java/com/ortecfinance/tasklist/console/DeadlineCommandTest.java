@@ -1,25 +1,10 @@
 package com.ortecfinance.tasklist.console;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-public final class DeadlineCommandTest {
-    private ApplicationTestSetup applicationTestSetup;
-
-    @BeforeEach
-    public void start() throws IOException {
-        applicationTestSetup = new ApplicationTestSetup();
-        applicationTestSetup.start_the_application();
-    }
-
-    @AfterEach
-    public void close() throws IOException, InterruptedException {
-        applicationTestSetup.kill_the_application();
-    }
-
+public final class DeadlineCommandTest extends ConsoleTestBase {
     @Test
     void deadline_is_shown_in_show_output() throws IOException {
         applicationTestSetup.execute("add project secrets");

@@ -1,27 +1,13 @@
 package com.ortecfinance.tasklist.console;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class TodayCommandTest {
+public class TodayCommandTest extends ConsoleTestBase {
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd-MM-uuuu");
-    private ApplicationTestSetup applicationTestSetup;
-
-    @BeforeEach
-    public void start() throws IOException {
-        applicationTestSetup = new ApplicationTestSetup();
-        applicationTestSetup.start_the_application();
-    }
-
-    @AfterEach
-    public void close() throws IOException, InterruptedException {
-        applicationTestSetup.kill_the_application();
-    }
 
     @Test
     void today_shows_only_tasks_due_today_and_only_matching_projects() throws IOException {

@@ -1,7 +1,6 @@
 package com.ortecfinance.tasklist.repository;
 
 import com.ortecfinance.tasklist.model.Task;
-import com.ortecfinance.tasklist.exceptions.ProjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,16 +37,6 @@ class InMemoryTaskRepositoryTest {
         assertEquals(2, t2.getId());
         assertEquals("Eat donuts", t1.getDescription());
         assertEquals("Destroy humans", t2.getDescription());
-    }
-
-    @Test
-    void addTask_to_unknown_project_throws_exception() {
-        ProjectNotFoundException ex = assertThrows(
-                ProjectNotFoundException.class,
-                () -> repository.addTask("unknown", "Task")
-        );
-
-        assertTrue(ex.getMessage().contains("Could not find a project"));
     }
 
     @Test

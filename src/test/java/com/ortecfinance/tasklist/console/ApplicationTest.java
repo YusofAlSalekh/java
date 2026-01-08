@@ -1,25 +1,10 @@
 package com.ortecfinance.tasklist.console;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-public final class ApplicationTest {
-    private ApplicationTestSetup applicationTestSetup;
-
-    @BeforeEach
-    public void start() throws IOException {
-        applicationTestSetup = new ApplicationTestSetup();
-        applicationTestSetup.start_the_application();
-    }
-
-    @AfterEach
-    public void close() throws IOException, InterruptedException {
-        applicationTestSetup.kill_the_application();
-    }
-
+public final class ApplicationTest extends ConsoleTestBase {
     @Test
     void it_works() throws IOException {
         applicationTestSetup.execute("show");
