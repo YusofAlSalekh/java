@@ -121,7 +121,7 @@ public final class TaskList implements CommandLineRunner {
     }
 
     private Long parseId(String[] idAndDate) {
-        Long id;
+        long id;
         try {
             id = Long.parseLong(idAndDate[0]);
         } catch (NumberFormatException e) {
@@ -247,7 +247,7 @@ public final class TaskList implements CommandLineRunner {
     }
 
     private void setDone(String idString, boolean done) {
-        Long id;
+        long id;
         try {
             id = Long.parseLong(idString);
         } catch (NumberFormatException e) {
